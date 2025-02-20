@@ -11,8 +11,8 @@ export default function Home() {
 
   // prompt result
   // const [result, setResult] = useState("");
-  const [_, setLoading] = useState(false);
-  const [__, setUploaded] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [uploaded, setUploaded] = useState("");
   // const [tableData, setTableData] = useState();
 
   // useEffect(() => {
@@ -57,6 +57,8 @@ export default function Home() {
     if (response.ok) {
       console.log("Uploaded file URL:", result.url);
       setUploaded(result.url);
+
+      console.log(uploaded);
     } else {
       console.error("Upload error:", result.error);
     }
@@ -85,6 +87,8 @@ export default function Home() {
       setLoading(false);
     }
     setPrompt("");
+
+    console.log(loading);
   };
 
   return (

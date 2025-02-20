@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
 // TODO: Pass the image URL to the OpenAI API
-export async function POST(req: NextRequest) {
+export async function POST() {
   //   const body = await req.json();
 
   const openai = createOpenAI({
