@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CloudUpload, LibraryBigIcon } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
 
   // prompt result
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [uploaded, setUploaded] = useState("");
+  // const [result, setResult] = useState("");
+  const [_, setLoading] = useState(false);
+  const [__, setUploaded] = useState("");
   // const [tableData, setTableData] = useState();
 
   // useEffect(() => {

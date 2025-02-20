@@ -5,7 +5,7 @@ import { generateText } from "ai";
 
 // TODO: Pass the image URL to the OpenAI API
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  //   const body = await req.json();
 
   const openai = createOpenAI({
     // custom settings, e.g.
