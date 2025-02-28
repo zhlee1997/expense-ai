@@ -23,25 +23,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const { data: fileData } = await supabase.storage
+    const { data: fileDataResponse } = supabase.storage
       .from("expense-tracker")
       .getPublicUrl(data.path);
 
-    // Absolute URL for server-side fetch
-    const queryImageUrl = new URL(
-      "/api/query-image",
+    // UPLOAD IMAGE URL TO SUPABASE TABLE (id, url, filename, user_id, created_at)
+    // if (fileDataResponse?.publicUrl) {
+    // TODO: assume direct submit image
+    const submitImageUrl = new URL(
+      "/api/submit-image",
       req.nextUrl.origin
     ).toString();
 
-    await fetch(queryImageUrl, {
+    await fetch(submitImageUrl, {
       method: "POST",
       body: JSON.stringify({
-        image: fileData?.publicUrl,
+        fileDataResponse: fileDataResponse?.publicUrl,
+        filename: file.name,
       }),
     });
+    // }
 
     return NextResponse.json({
-      url: fileData?.publicUrl,
+      url: fileDataResponse?.publicUrl,
     });
   } catch (error) {
     return NextResponse.json(

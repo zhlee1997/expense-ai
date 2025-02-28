@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 
+import supabase from "@/config/supabase";
+
 export async function GET() {
   try {
-    // Your logic here
+    const { data, error } = await supabase
+      .from("expense_images")
+      .select("url, filename, created_at");
+
+    return NextResponse.json({ data });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error fetching docs:", error.message);

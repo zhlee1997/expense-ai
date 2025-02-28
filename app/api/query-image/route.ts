@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { generateText, generateObject } from "ai";
+import z from "zod";
+import { generateEmbeddings } from "@/lib/ai/embedding";
 
 // TODO: Pass the image URL to the OpenAI API
-export async function POST() {
-  //   const body = await req.json();
+export async function POST(req: NextRequest) {
+  const { image } = await req.json();
 
   const openai = createOpenAI({
     // custom settings, e.g.
@@ -19,11 +21,13 @@ export async function POST() {
       {
         role: "user",
         content: [
-          { type: "text", text: "Describe the image in detail." },
+          {
+            type: "text",
+            text: "This is a receipt or invoice. Please extract the shop name, total price and transaction date (in standard ISO datetime format is YYYY-MM-DDThh:mm:ss).",
+          },
           {
             type: "image",
-            image:
-              "https://github.com/vercel/ai/blob/main/examples/ai-core/data/comic-cat.png?raw=true",
+            image: image,
 
             // OpenAI specific options - image detail:
             providerOptions: {
@@ -35,9 +39,37 @@ export async function POST() {
     ],
   });
 
-  console.log("text: ", text);
+  // const embeddingModel = openai.embedding("text-embedding-3-small");
+
+  // const embedResult = await embeddingModel.doEmbed({
+  //   values: [text.trim()],
+  // });
+
+  // const embedResultList = embedResult.embeddings;
+
+  const embeddings = await generateEmbeddings(text);
+
+  const result = await generateObject({
+    model: openai("gpt-4o-mini", {
+      structuredOutputs: true,
+    }),
+    schemaName: "recipe",
+    schemaDescription: "This is a schema information of a receipt or invoice.",
+    schema: z.object({
+      shop_name: z.string(),
+      total: z.number(),
+      transaction_date: z.string(),
+    }),
+    prompt: text,
+  });
+
+  console.log("result in json: ", JSON.stringify(result.object, null, 2));
+  console.log("embedResult: ", embeddings);
 
   return NextResponse.json({
-    data: text,
+    data: {
+      result: result.object,
+      embedResult: embeddings,
+    },
   });
 }

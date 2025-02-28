@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import {
   Sidebar,
   SidebarContent,
@@ -9,29 +11,33 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  Search,
+  Settings,
+  Calculator,
+  Library,
+} from "lucide-react";
+import Link from "next/link";
 
 // Menu items.
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/",
     icon: Home,
   },
   {
-    title: "Inbox",
+    title: "Analytics",
     url: "#",
-    icon: Inbox,
+    icon: Calculator,
   },
   {
-    title: "Calendar",
+    title: "Documents",
     url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
+    icon: Library,
   },
   {
     title: "Settings",
@@ -45,16 +51,26 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <Image
+            className="dark:invert m-3"
+            src="/next.svg"
+            alt="Next.js logo"
+            width={180}
+            height={38}
+            priority
+          />
+          {/* <SidebarGroupLabel className="text-lg">
+            LLM Application
+          </SidebarGroupLabel> */}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="my-3">
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

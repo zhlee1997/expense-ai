@@ -1,12 +1,38 @@
 "use client";
 
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CloudUpload, LibraryBigIcon } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  CloudUpload,
+  LibraryBigIcon,
+  ChevronsUpDown,
+  Check,
+} from "lucide-react";
 import { useState, useRef } from "react";
+import { useChat } from "@ai-sdk/react";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    maxSteps: 3,
+  });
+
   const [prompt, setPrompt] = useState("");
 
   // prompt result
@@ -71,9 +97,15 @@ export default function Home() {
     inputRef.current.click();
   }
 
-  const handleQueryModel = async () => {
+  const handleQueryModel = async (
+    e:
+      | React.FormEvent<HTMLFormElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    e.preventDefault();
     if (!prompt) return;
     setLoading(true);
+
     try {
       const result = await fetch("/api/query", {
         method: "POST",
@@ -93,27 +125,68 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen w-full">
-      <div className="absolute top-[30px] right-[30px] hover:cursor-pointer">
-        <Avatar onClick={handleClickAvatar}>
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
+      <div>
+        <div className="absolute top-[30px] left-[280px] hover:cursor-pointer">
+          <ComboboxDemo />
+        </div>
+        <div className="absolute top-[30px] right-[30px] hover:cursor-pointer">
+          <Avatar onClick={handleClickAvatar}>
+            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
+
       <div className="flex flex-col items-center gap-4 w-1/2">
         <p className="text-2xl mb-6">RAG with your expenses</p>
+
+        <div className="space-y-4">
+          {messages.map((m) => (
+            <div key={m.id} className="whitespace-pre-wrap">
+              <div>
+                <div className="font-bold">{m.role}</div>
+                <p>
+                  {m.content.length > 0 ? (
+                    m.content
+                  ) : (
+                    <span className="italic font-light">
+                      {"calling tool: " + m?.toolInvocations?.[0].toolName}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="flex flex-col space-y-3 w-full">
-          <Textarea
-            rows={5}
-            placeholder="Type your query here"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
-          <p className="text-sm text-muted-foreground self-start justify-self-start mb-14">
-            You will query against OpenAI-o3-mini model.
-          </p>
-          <Button className="w-full h-12 text-base" onClick={handleQueryModel}>
-            Send message
-          </Button>
+          {/* <form onSubmit={(e) => handleQueryModel(e)}> */}
+          <form onSubmit={handleSubmit}>
+            <Textarea
+              rows={4}
+              placeholder="Type your query here"
+              // value={prompt}
+              value={input}
+              // onChange={(e) => setPrompt(e.target.value)}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && "form" in e.target) {
+                  console.log("Enter pressed");
+                  handleQueryModel(e);
+                }
+              }}
+            />
+            <p className="text-sm text-muted-foreground self-start justify-self-start mb-8 mt-1">
+              Note: You are using o3-mini model.
+            </p>
+            <Button
+              type="submit"
+              className="w-full h-12 text-base"
+              // onClick={handleQueryModel}
+            >
+              Send message
+            </Button>
+          </form>
         </div>
         <div className="flex gap-x-4 w-full">
           <form className="flex flex-1">
@@ -130,11 +203,83 @@ export default function Home() {
               onChange={handleFileUpload}
             />
           </form>
-          <Button className="flex-1 h-12 text-base bg-white text-primary border border-primary hover:bg-slate-100">
-            <LibraryBigIcon /> Docs Library
-          </Button>
+          <Link href="/library" className="flex flex-1">
+            <Button className="flex-1 h-12 text-base bg-white text-primary border border-primary hover:bg-slate-100">
+              <LibraryBigIcon /> Docs Library
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+const frameworks = [
+  {
+    value: "next.js",
+    label: "Claude 3.7 Sonnet",
+  },
+  {
+    value: "sveltekit",
+    label: "OpenAI o3-mini",
+  },
+  {
+    value: "remix",
+    label: "OpenAI o1-mini",
+  },
+  {
+    value: "nuxt.js",
+    label: "DeepSeek R1",
+  },
+];
+
+export function ComboboxDemo() {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[200px] justify-between"
+        >
+          {value
+            ? frameworks.find((framework) => framework.value === value)?.label
+            : "Select your model..."}
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          {/* <CommandInput placeholder="Search framework..." className="h-9" /> */}
+          <CommandList>
+            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandGroup>
+              {frameworks.map((framework) => (
+                <CommandItem
+                  key={framework.value}
+                  value={framework.value}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  {framework.label}
+                  <Check
+                    className={cn(
+                      "ml-auto",
+                      value === framework.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
